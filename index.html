@@ -444,12 +444,20 @@ async function enableBrowserNotifications() {
 
   if (Notification.permission === "default") {
     const permission = await Notification.requestPermission();
-    return permission === "granted";
+
+    if (permission === "granted") {
+      new Notification("เปิดแจ้งเตือนสำเร็จ", {
+        body: "ตอนนี้เบราว์เซอร์พร้อมรับแจ้งเตือนนัดหมายแล้ว",
+        icon: "KPL-logo.jpg"
+      });
+      return true;
+    }
+
+    return false;
   }
 
   return false;
 }
-
 function showBrowserBookingNotification(booking) {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
@@ -808,40 +816,130 @@ let lastSeenBookingId = "";
       document.getElementById("contactOpenHoursInputField").value = siteContent.contactOpenHours;
       document.getElementById("mapPlaceholderInput").value = siteContent.mapPlaceholder;
     }
+window.addToCart = function(id){
+  const item = services.find(s => s.id === id), existing = cart.find(c => c.id === id);
+  if(existing){ existing.qty += 1; } else { cart.push({ ...item, qty: 1 }); }
+  renderCart();
+  const select = document.getElementById("serviceSelect");
+  if(select) select.value = String(id);
+  showToast("เพิ่ม " + item.name + " แล้ว");
+  showPage("booking");
+}
 
-    window.addToCart = function(id){
-      const item=services.find(s=>s.id===id), existing=cart.find(c=>c.id===id);
-      if(existing){ existing.qty+=1; } else { cart.push({...item,qty:1}); }
-      renderCart(); const select=document.getElementById("serviceSelect"); if(select) select.value=String(id);
-      showToast("เพิ่ม " + item.name + " แล้ว"); showPage("booking");
+window.increaseQty = function(id){
+  const item = cart.find(c => c.id === id);
+  if(item){
+    item.qty += 1;
+    renderCart();
+  }
+}
+
+window.decreaseQty = function(id){
+  const idx = cart.findIndex(c => c.id === id);
+  if(idx > -1){
+    if(cart[idx].qty > 1){
+      cart[idx].qty -= 1;
+    } else {
+      cart.splice(idx, 1);
     }
-    window.increaseQty = function(id){ const item=cart.find(c=>c.id===id); if(item){ item.qty+=1; renderCart(); } }
-    window.decreaseQty = function(id){ const idx=cart.findIndex(c=>c.id===id); if(idx>-1){ if(cart[idx].qty>1){ cart[idx].qty-=1 } else { cart.splice(idx,1) } renderCart(); } }
+    renderCart();
+  }
+}
 
-    const cartTableBody=document.getElementById("cartTableBody"), cartTotal=document.getElementById("cartTotal");
-    function renderCart(){
-      if(cart.length===0){ cartTableBody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted)">ยังไม่มีบริการที่เลือก</td></tr>'; cartTotal.textContent="฿0"; return; }
-      cartTableBody.innerHTML=cart.map(item=>`
-        <tr><td>${item.name}</td><td>฿${item.price}</td><td><button onclick="decreaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">-</button> <span style="display:inline-block;min-width:28px;text-align:center;">${item.qty}</span> <button onclick="increaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">+</button></td><td>฿${item.price*item.qty}</td></tr>`).join("");
-      cartTotal.textContent="฿"+cart.reduce((sum,item)=>sum+item.price*item.qty,0);
+const cartTableBody = document.getElementById("cartTableBody"), cartTotal = document.getElementById("cartTotal");
+
+function renderCart(){
+  if(cart.length === 0){
+    cartTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">ยังไม่มีบริการที่เลือก</td></tr>';
+    cartTotal.textContent = "฿0";
+    return;
+  }
+
+  cartTableBody.innerHTML = cart.map(item => `
+    <tr>
+      <td>${item.name}</td>
+      <td>฿${item.price}</td>
+      <td>
+        <button onclick="decreaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">-</button>
+        <span style="display:inline-block;min-width:28px;text-align:center;">${item.qty}</span>
+        <button onclick="increaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">+</button>
+      </td>
+      <td>฿${item.price * item.qty}</td>
+    </tr>
+  `).join("");
+
+  cartTotal.textContent = "฿" + cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+function getDaySettings(dateKey){
+  return daySettingsMap[dateKey] || {
+    clinicOpen: "11:00",
+    clinicClose: "20:00",
+    doctorIn: false,
+    doctorStart: "14:00",
+    doctorEnd: "19:00"
+  };
+}
+
+function getSlotsForDate(dateKey){
+  const s = getDaySettings(dateKey);
+  let start = timeToMinutes(s.clinicOpen), end = timeToMinutes(s.clinicClose);
+  if(end < start) return [];
+  const arr = [];
+  for(let t = start; t <= end; t += 20){
+    arr.push(minutesToTime(t));
+  }
+  return arr;
+}
+
+function getSlotState(dateKey, time){
+  if(!slotStatusMap[dateKey]) slotStatusMap[dateKey] = {};
+  return slotStatusMap[dateKey][time] || "free";
+}
+
+function setSlotState(dateKey, time, state){
+  if(!slotStatusMap[dateKey]) slotStatusMap[dateKey] = {};
+  slotStatusMap[dateKey][time] = state;
+}
+
+function countFreeSlots(dateKey){
+  if((dayStatusMap[dateKey] || "available") === "holiday") return 0;
+  return getSlotsForDate(dateKey).filter(t => getSlotState(dateKey, t) === "free").length;
+}
+
+function effectiveDayStatus(dateKey){
+  const base = dayStatusMap[dateKey] || "available";
+  if(base === "holiday") return "holiday";
+  return countFreeSlots(dateKey) === 0 ? "full" : "available";
+}
+
+async function updateBookingStatus(id, status) {
+  try {
+    const { error } = await supabaseClient
+      .from("bookings")
+      .update({ status: status })
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      showToast("อัปเดตสถานะไม่สำเร็จ");
+      return;
     }
 
-    function getDaySettings(dateKey){ return daySettingsMap[dateKey] || {clinicOpen:"11:00",clinicClose:"20:00",doctorIn:false,doctorStart:"14:00",doctorEnd:"19:00"}; }
-    function getSlotsForDate(dateKey){
-      const s=getDaySettings(dateKey); let start=timeToMinutes(s.clinicOpen), end=timeToMinutes(s.clinicClose); if(end<start) return [];
-      const arr=[]; for(let t=start;t<=end;t+=20){ arr.push(minutesToTime(t)); } return arr;
-    }
-    function getSlotState(dateKey,time){ if(!slotStatusMap[dateKey]) slotStatusMap[dateKey]={}; return slotStatusMap[dateKey][time] || "free"; }
-    function setSlotState(dateKey,time,state){ if(!slotStatusMap[dateKey]) slotStatusMap[dateKey]={}; slotStatusMap[dateKey][time]=state; }
-    function countFreeSlots(dateKey){ if((dayStatusMap[dateKey]||"available")==="holiday") return 0; return getSlotsForDate(dateKey).filter(t=>getSlotState(dateKey,t)==="free").length; }
-    function effectiveDayStatus(dateKey){ const base=dayStatusMap[dateKey]||"available"; if(base==="holiday") return "holiday"; return countFreeSlots(dateKey)===0?"full":"available"; }
+    bookings = bookings.map(b =>
+      String(b.id) === String(id) ? { ...b, status } : b
+    );
 
-    function updateBookingStatus(id,status){
-      bookings = bookings.map(b=>b.id===id?{...b,status}:b);
-      saveAllData(); renderAdminBookings(); renderMyBooking(); showToast(status==="approved"?"ยืนยันคิวแล้ว":"ยกเลิกคิวแล้ว");
-    }
-    window.updateBookingStatus = updateBookingStatus;
-
+    renderAdminBookings();
+    renderMyBooking();
+    showToast(status === "approved" ? "ยืนยันคิวแล้ว" : "ยกเลิกคิวแล้ว");
+  } catch (err) {
+    console.error(err);
+    showToast("เกิดข้อผิดพลาด");
+  }
+}
+window.updateBookingStatus = updateBookingStatus;
+   
     function renderAdminBookings(){
       const body=document.getElementById("bookingAdminBody");
       if(bookings.length===0){ body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">ยังไม่มีข้อมูลนัดหมาย</td></tr>'; return; }
