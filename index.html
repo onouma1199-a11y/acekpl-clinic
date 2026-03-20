@@ -77,6 +77,17 @@
     .notify-box{position:sticky;top:88px;z-index:40;margin-bottom:16px}.notify-item{background:#fff0f7;border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px}
     .notify-item strong{color:var(--pink-dark)} .notify-close{float:right;border:none;background:transparent;font-size:18px;cursor:pointer;color:#be185d;font-weight:800;line-height:1}
     .section-divider{margin-top:20px}.admin-page-nav{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 20px}.admin-page-btn{border:none;background:#fff;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;border:1px solid var(--border);color:var(--pink-dark)}.admin-page-btn.active,.admin-page-btn:hover{background:var(--pink-soft)}.admin-editor{display:none}.admin-editor.active{display:block}
+
+    .booking-alert-overlay{position:fixed;inset:0;background:rgba(15,23,42,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:120}
+    .booking-alert-overlay.show{display:flex}
+    .booking-alert-card{width:min(520px,100%);background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 60px rgba(15,23,42,.22);padding:22px;position:relative}
+    .booking-alert-close{position:absolute;top:12px;right:14px;border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--pink-dark);font-weight:900}
+    .booking-alert-title{margin:0 0 10px;font-size:26px;color:var(--pink-dark)}
+    .booking-alert-sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+    .booking-alert-grid{display:grid;gap:10px}
+    .booking-alert-row{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:10px 12px;border-radius:14px;background:#fff8fb;border:1px solid var(--border)}
+    .booking-alert-row strong{color:var(--pink-dark)}
+
     @media (max-width:980px){.hero,.grid-3,.grid-2,.grid-admin,.calendar-wrap,.slot-list{grid-template-columns:1fr}.nav{padding:10px 0;flex-direction:column;align-items:flex-start}}
   </style>
 </head>
@@ -144,9 +155,19 @@
             <div class="field"><label>วันที่นัดหมาย</label><input id="serviceDate" type="date" required></div>
             <div class="field"><label>เลือกบริการ</label><select id="serviceSelect"><option value="">ลูกค้ามีคอร์ส / ไม่เลือกบริการ</option></select></div>
             <div class="field"><label>เวลานัดหมาย</label><select id="serviceTime" required><option value="">กรุณาเลือกวันที่จากปฏิทินก่อน</option></select></div>
-            <div class="field"><label>ผู้ให้บริการ</label><select id="doctorType"><option>แพทย์ผิวหนัง</option><option>พนักงานทรีตเมนต์</option><option>ที่ปรึกษาความงาม</option></select></div>
-            <div class="field"><label>หมายเหตุ</label><textarea id="bookingNote" placeholder="รายละเอียดเพิ่มเติม" data-placeholder-th="รายละเอียดเพิ่มเติม" data-placeholder-en="Additional details" data-i18n-placeholder-th="รายละเอียดเพิ่มเติม" data-i18n-placeholder-en="Additional details"></textarea></div>
-            <button class="btn btn-primary" type="submit">ส่งนัดหมาย</button>
+            <div class="field"><label>ผู้ให้บริการ</label><select id="doctorType"><option>แพทย์</option><option>พนักงานทรีตเมนต์</option><option>พนักงานเลเซอร์</option></select></div>
+            <div class="field">
+  <label>หมายเหตุ</label>
+  <textarea 
+    id="bookingNote" 
+    placeholder="แจ้งรายการที่ทำ"
+    data-placeholder-th="แจ้งรายการที่ทำ"
+    data-placeholder-en="Describe selected services"
+    data-i18n-placeholder-th="แจ้งรายการที่ทำ"
+    data-i18n-placeholder-en="Describe selected services"
+  ></textarea>
+</div>
+<button class="btn btn-primary" type="submit">ส่งนัดหมาย</button>
           </form>
         </div>
       </div>
@@ -183,7 +204,7 @@
         <div class="panel">
           <div class="contact-list">
             <div class="contact-item"><div class="icon">📞</div><div><h3>โทรศัพท์</h3><p class="muted" id="contactPhone"></p></div></div>
-            <div class="contact-item"><div class="icon">💬</div><div><h3>LINE Official</h3><p class="muted" id="contactLine"></p><a class="btn btn-primary" href="https://line.me/" target="_blank" rel="noopener noreferrer">ทัก LINE</a></div></div>
+            <div class="contact-item"><div class="icon">💬</div><div><h3>LINE Official</h3><p class="muted" id="contactLine"></p><a class="btn btn-primary" href="https://lin.ee/uoxebOP" target="_blank" rel="noopener noreferrer">ทัก LINE</a></div></div>
             <div class="contact-item"><div class="icon">📍</div><div><h3>ที่อยู่คลินิก</h3><p class="muted" id="contactAddress"></p></div></div>
             <div class="contact-item"><div class="icon">🕒</div><div><h3>เวลาเปิดทำการ</h3><p class="muted" id="contactOpenHours"></p></div></div>
           </div>
@@ -388,6 +409,18 @@
     </section>
   </main>
 
+
+  <div class="booking-alert-overlay" id="bookingAlertOverlay">
+    <div class="booking-alert-card">
+      <button class="booking-alert-close" type="button" id="bookingAlertClose">×</button>
+      <h3 class="booking-alert-title">มีนัดหมายใหม่เข้ามา</h3>
+      <p class="booking-alert-sub">การแจ้งเตือนนี้จะค้างบนหน้าจอจนกว่าจะกดปิดรับทราบ</p>
+      <div class="booking-alert-grid" id="bookingAlertContent"></div>
+      <div style="height:14px"></div>
+      <button class="btn btn-primary" type="button" id="bookingAlertAcknowledgeBtn">ปิดรับทราบ</button>
+    </div>
+  </div>
+
   <footer class="footer">© 2026 ACE Clinic · เอซ คลินิกเวชกรรม</footer>
   <div class="toast" id="toast"></div>
 
@@ -399,10 +432,7 @@
   </script>
 <script>
 async function enableBrowserNotifications() {
-  if (!("Notification" in window)) {
-    console.log("Browser นี้ไม่รองรับ notification");
-    return;
-  }
+  if (!("Notification" in window)) return;
 
   if (Notification.permission === "default") {
     await Notification.requestPermission();
@@ -490,6 +520,8 @@ function showBrowserBookingNotification(booking) {
     }
 
     let currentDate = new Date(), selectedKey = null, adminUnlocked = false;
+let bookingPollStarted = false;
+let lastSeenBookingId = "";
     const toast = document.getElementById("toast");
 
     function showToast(message){
@@ -835,8 +867,13 @@ function showBrowserBookingNotification(booking) {
       for(let i=0;i<firstDay;i++){ const empty=document.createElement("div"); empty.className="day muted"; calendarDays.appendChild(empty); }
       for(let day=1;day<=lastDate;day++){
         const key=getDateKey(year,month,day), status=effectiveDayStatus(key), freeCount=countFreeSlots(key), settings=getDaySettings(key), doctorLine=settings.doctorIn?("หมอเข้า "+settings.doctorStart+"-"+settings.doctorEnd):"";
-        const el=document.createElement("div"); el.className="day "+status+(selectedKey===key?" selected":"");
-        el.innerHTML=`<div class="num">${day}</div><div class="status">${status==="available"?"คิวว่าง":status==="full"?"คิวเต็ม":"วันหยุด"}</div><div class="substatus">${settings.clinicOpen} - ${settings.clinicClose}</div>${doctorLine?`<div class="doctor in">${doctorLine}</div>`:""}<div class="doctor">${(dayStatusMap[key]||"available")==="holiday"?"ปิดคลินิก":"ว่าง "+freeCount+" ช่วงเวลา"}</div>`;
+const el=document.createElement("div");
+el.className="day "+status+(selectedKey===key?" selected":"");
+el.innerHTML=`<div class="num">${day}</div>
+<div class="status">${status==="available"?"คิวว่าง":status==="full"?"คิวเต็ม":"วันหยุด"}</div>
+<div class="substatus">${settings.clinicOpen} - ${settings.clinicClose}</div>
+${doctorLine?`<div style="color:#2563eb;font-weight:800;font-size:12px">${doctorLine}</div>`:""}
+<div class="doctor">${(dayStatusMap[key]||"available")==="holiday"?"ปิดคลินิก":"ว่าง "+freeCount+" ช่วงเวลา"}</div>`;
         el.onclick=()=>selectDateByKey(key); calendarDays.appendChild(el);
       }
     }
@@ -899,36 +936,35 @@ function showBrowserBookingNotification(booking) {
       try {
         let insertError = null;
 
-        // พยายามบันทึกแบบเต็มก่อน
-        let result = await supabaseClient.from("bookings").insert([{
-          name: booking.name,
-          phone: booking.phone,
-          booking_date: booking.date,
-          booking_time: booking.time,
-          status: booking.status
-        }]);
+       // พยายามบันทึกแบบเต็มก่อน
+let result = await supabaseClient.from("bookings").insert([{
+  name: booking.name,
+  phone: booking.phone,
+  booking_date: booking.date,
+  booking_time: booking.time,
+  status: booking.status
+}]);
 
-        insertError = result.error || null;
+insertError = result.error || null;
 
-        // ถ้าตารางยังไม่มีคอลัมน์ status ให้ลองบันทึกแบบพื้นฐาน
-        if (insertError) {
-          console.warn("Insert with status failed, retrying basic insert:", insertError);
-          result = await supabaseClient.from("bookings").insert([{
-            name: booking.name,
-            phone: booking.phone,
-            booking_date: booking.date,
-            booking_time: booking.time
-          }]);
-          insertError = result.error || null;
-        }
+// ถ้าตารางยังไม่มีคอลัมน์ status ให้ลองบันทึกแบบพื้นฐาน
+if (insertError) {
+  console.warn("Insert with status failed, retrying basic insert:", insertError);
+  result = await supabaseClient.from("bookings").insert([{
+    name: booking.name,
+    phone: booking.phone,
+    booking_date: booking.date,
+    booking_time: booking.time
+  }]);
+  insertError = result.error || null;
+}
 
-        if (insertError) {
-          console.error(insertError);
-          showToast("ส่งข้อมูลไม่สำเร็จ");
-          return;
-        }
+if (insertError) {
+  console.error(insertError);
+  showToast("ส่งข้อมูลไม่สำเร็จ");
+  return;
+}
 
-        showBrowserBookingNotification(booking);
 
         try {
           const notifyRes = await fetch(
@@ -1050,6 +1086,20 @@ function openAdminPanel() {
   fillAdminContentForms();
   renderPromoAdminForms();
   renderCategoryAdmin();
+
+  if (!bookingPollStarted) {
+    bookingPollStarted = true;
+
+    loadBookingsFromSupabase().then(() => {
+      if (bookings.length > 0) {
+        lastSeenBookingId = String(bookings[0].id || "");
+      }
+    });
+
+    setInterval(() => {
+      checkNewBookingsForAdmin();
+    }, 5000);
+  }
 }
 
 adminLoginBtn.addEventListener("click", () => {
@@ -1088,10 +1138,93 @@ adminPasswordInput.addEventListener("keydown", (e) => {
   renderNotifications();
   showToast("ออกจากหน้าแอดมินแล้ว");
 });
+document.getElementById("bookingAlertClose").addEventListener("click", hidePersistentBookingAlert);
+document.getElementById("bookingAlertAcknowledgeBtn").addEventListener("click", hidePersistentBookingAlert);
+document.getElementById("bookingAlertOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "bookingAlertOverlay") hidePersistentBookingAlert();
+});
+
+function showPersistentBookingAlert(booking){
+  const overlay = document.getElementById("bookingAlertOverlay");
+  const content = document.getElementById("bookingAlertContent");
+  if(!overlay || !content || !booking) return;
+
+  content.innerHTML = `
+    <div class="booking-alert-row"><strong>ชื่อ</strong><span>${booking.name || "-"}</span></div>
+    <div class="booking-alert-row"><strong>เบอร์โทร</strong><span>${booking.phone || "-"}</span></div>
+    <div class="booking-alert-row"><strong>วันที่</strong><span>${booking.date || "-"}</span></div>
+    <div class="booking-alert-row"><strong>เวลา</strong><span>${booking.time || "-"}</span></div>
+    <div class="booking-alert-row"><strong>บริการ</strong><span>${booking.services || "-"}</span></div>
+    <div class="booking-alert-row"><strong>สถานะ</strong><span>${booking.status || "pending"}</span></div>
+  `;
+  overlay.classList.add("show");
+}
+
+function hidePersistentBookingAlert(){
+  const overlay = document.getElementById("bookingAlertOverlay");
+  if(overlay) overlay.classList.remove("show");
+}
+
+async function checkNewBookingsForAdmin() {
+  if (!adminUnlocked) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("bookings")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error("checkNewBookingsForAdmin error:", error);
+      return;
+    }
+
+    const latestBookings = (data || []).map(item => ({
+      id: item.id,
+      customerKey: item.phone || item.name || String(item.id),
+      name: item.name || "",
+      phone: item.phone || "",
+      date: item.booking_date || "",
+      time: item.booking_time || "",
+      doctor: "",
+      note: "",
+      services: item.services || "-",
+      total: 0,
+      status: item.status || "pending"
+    }));
+
+    if (latestBookings.length > 0) {
+      const newest = latestBookings[0];
+      const newestId = String(newest.id || "");
+
+      if (lastSeenBookingId && newestId && newestId !== lastSeenBookingId) {
+        showBrowserBookingNotification({
+          name: newest.name,
+          date: newest.date,
+          time: newest.time
+        });
+
+        showPersistentBookingAlert(newest);
+        showToast("มีนัดหมายใหม่เข้ามา");
+      }
+
+      lastSeenBookingId = newestId;
+    }
+
+    bookings = latestBookings;
+    renderAdminBookings();
+    renderMyBooking();
+  } catch (err) {
+    console.error("Polling error:", err);
+  }
+}
 
     async function loadBookingsFromSupabase(){
       try{
-        const { data, error } = await supabaseClient.from("bookings").select("*").order("booking_date", { ascending: false });
+        const { data, error } = await supabaseClient
+  .from("bookings")
+  .select("*")
+  .order("id", { ascending: false });
         if(error){ console.error(error); return; }
         bookings = (data || []).map(item => ({
           id: item.id,
@@ -1102,7 +1235,7 @@ adminPasswordInput.addEventListener("keydown", (e) => {
           time: item.booking_time || "",
           doctor: "",
           note: "",
-          services: "-",
+          services: item.services || "-",
           total: 0,
           status: item.status || "pending"
         }));
@@ -1209,7 +1342,7 @@ if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
     "รวมข้อมูลติดต่อ เวลาเปิดทำการ และแผนที่":"Contact information, opening hours, and map.",
     "โทรศัพท์":"Phone",
     "LINE Official":"LINE Official",
-    "ทัก LINE":"https://lin.ee/uoxebOP",
+    "ทัก LINE":"Chat on LINE",
     "ที่อยู่คลินิก":"Clinic Address",
     "123 ถนนสุขุมวิท แขวงตัวอย่าง เขตวัฒนา กรุงเทพมหานคร 10110":"123 Sukhumvit Road, Sample Subdistrict, Watthana District, Bangkok 10110",
     "คลินิกเปิด 11:00 - 20:00 น.":"Clinic open 11:00 AM - 8:00 PM",
