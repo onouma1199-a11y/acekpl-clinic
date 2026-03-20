@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ACE Clinic Admin v13 CMS</title>
+  <title>ACE Clinic </title>
   <style>
     :root{
       --pink:#ec4899; --pink-dark:#db2777; --pink-soft:#fdf2f8; --bg:#fff8fb; --border:#f5c2dc;
@@ -194,17 +194,30 @@
 
     <section class="page" id="page-admin">
       <div class="notify-box hidden" id="adminNotifications"></div>
-      <div><h2><span data-i18n="admin_title">หน้า 5 แอดมิน 🔔</span></h2></div>
+      <div><h2><span data-i18n="admin_title">แอดมิน 🔔</span></h2></div>
 
       <div id="adminLogin" class="admin-lock">
-        <div class="panel">
-          <h3><span data-i18n="admin_login_title">เข้าสู่หน้าแอดมิน</span></h3>
-          <div class="form-grid">
-            <div class="field"><label><span data-i18n="admin_password_label">รหัสผ่านแอดมิน</span></label><input id="adminPassword" type="password" placeholder="พิมพ์รหัสผ่าน" data-placeholder-th="พิมพ์รหัสผ่าน" data-placeholder-en="Enter password" data-i18n-placeholder-th="พิมพ์รหัสผ่าน" data-i18n-placeholder-en="Enter password"></div>
-            <button class="btn btn-primary" id="adminLoginBtn"><span data-i18n="admin_login_button">เข้าสู่ระบบ</span></button>
-            <div class="mini-note"><span data-i18n="admin_password_hint_prefix">รหัสผ่านตัวอย่างในไฟล์นี้คือ </span><strong>admin123</strong></div>
-          </div>
-        </div>
+  <div class="panel">
+    <h3><span data-i18n="admin_login_title">เข้าสู่หน้าแอดมิน</span></h3>
+    <div class="form-grid">
+      <div class="field">
+        <label><span data-i18n="admin_password_label">รหัสผ่านแอดมิน</span></label>
+        <input
+          id="adminPassword"
+          type="password"
+          placeholder="พิมพ์รหัสผ่าน"
+          data-placeholder-th="พิมพ์รหัสผ่าน"
+          data-placeholder-en="Enter password"
+          data-i18n-placeholder-th="พิมพ์รหัสผ่าน"
+          data-i18n-placeholder-en="Enter password"
+        >
+      </div>
+      <button class="btn btn-primary" id="adminLoginBtn" type="button">
+        <span data-i18n="admin_login_button">เข้าสู่ระบบ</span>
+      </button>
+    </div>
+  </div>
+</div>
       </div>
 
       <div id="adminPanel" class="hidden">
@@ -376,7 +389,7 @@
     </section>
   </main>
 
-  <footer class="footer">© 2026 ACE Clinic · เวอร์ชันแอดมินแก้ได้เกือบทุกส่วน</footer>
+  <footer class="footer">© 2026 ACE Clinic · เอซ คลินิกเวชกรรม</footer>
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -385,6 +398,46 @@
     const SUPABASE_ANON_KEY = "sb_publishable_Hdkb24wPoLiORmo74xZkWg_KxDAwJaZ";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
+<script>
+async function enableBrowserNotifications() {
+  if (!("Notification" in window)) {
+    console.log("Browser นี้ไม่รองรับ notification");
+    return;
+  }
+
+  if (Notification.permission === "default") {
+    await Notification.requestPermission();
+  }
+}
+
+function showBrowserBookingNotification(booking) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+
+  new Notification("มีนัดหมายใหม่", {
+    body: `${booking.name} • ${booking.date} ${booking.time}`,
+  });
+}
+</script>
+
+<script>
+async function enableBrowserNotifications() {
+  if (!("Notification" in window)) return;
+
+  if (Notification.permission === "default") {
+    await Notification.requestPermission();
+  }
+}
+
+function showBrowserBookingNotification(booking) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+
+  new Notification("มีนัดหมายใหม่", {
+    body: `${booking.name} • ${booking.date} ${booking.time}`,
+  });
+}
+</script>
 
   <script>
     const STORAGE_KEYS = {
@@ -857,20 +910,48 @@
       const totalPrice=selectedService?selectedService.price:cart.reduce((sum,item)=>sum+item.price*item.qty,0);
       const booking={id:Date.now(),customerKey,name,phone,date,time,doctor:document.getElementById("doctorType").value,note:document.getElementById("bookingNote").value.trim(),services:serviceText,total:totalPrice,status:"pending"};
 
-      try{
-        const { error } = await supabaseClient.from("bookings").insert([{
-          name: booking.name,
-          phone: booking.phone,
-          booking_date: booking.date,
-          booking_time: booking.time,
-          status: booking.status
-        }]);
-        if(error){ console.error(error); showToast("ส่งข้อมูลไม่สำเร็จ"); return; }
-      }catch(err){
-        console.error(err);
-        showToast("เชื่อมต่อฐานข้อมูลไม่สำเร็จ");
-        return;
-      }
+      try {
+  const { error } = await supabaseClient.from("bookings").insert([{
+    name: booking.name,
+    phone: booking.phone,
+    booking_date: booking.date,
+    booking_time: booking.time,
+    status: booking.status
+  }]);
+
+  if (error) {
+    console.error(error);
+    showToast("ส่งข้อมูลไม่สำเร็จ");
+    return;
+  }
+
+  const notifyRes = await fetch(
+    "https://dmiobtpxybrhdklsmdru.supabase.co/functions/v1/line-booking-notify",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: booking.name,
+        phone: booking.phone,
+        booking_date: booking.date,
+        booking_time: booking.time,
+        status: booking.status
+      })
+    }
+  );
+
+  if (!notifyRes.ok) {
+    const text = await notifyRes.text();
+    console.error("LINE notify failed:", text);
+  }
+
+} catch (err) {
+  console.error(err);
+  showToast("เชื่อมต่อฐานข้อมูลไม่สำเร็จ");
+  return;
+}
 
       bookings.unshift(booking); addNotification(booking); setSlotState(date,time,"busy"); saveAllData();
       renderAdminBookings(); renderMyBooking(); renderCalendar(); if(selectedKey===date){ renderSlotsForSelectedDate(); syncDateTimeInputs(); }
@@ -934,18 +1015,68 @@
       btn.addEventListener("click",()=>showAdminSection(btn.dataset.adminSection));
     });
 
-    const adminLogin=document.getElementById("adminLogin"), adminPanel=document.getElementById("adminPanel");
-    document.getElementById("adminLoginBtn").addEventListener("click",()=>{
-      const pass=document.getElementById("adminPassword").value;
-      if(pass==="admin123"){
-        adminUnlocked=true; adminLogin.classList.add("hidden"); adminPanel.classList.remove("hidden"); document.getElementById("adminLogoutBtn").classList.remove("hidden");
-        if(selectedKey) document.getElementById("adminDatePicker").value=selectedKey;
-        renderSlotsForSelectedDate(); renderServiceAdminTable(); renderNotifications(); fillAdminContentForms(); renderPromoAdminForms(); renderCategoryAdmin(); showToast("เข้าสู่หน้าแอดมินแล้ว");
-      } else showToast("รหัสผ่านไม่ถูกต้อง");
-    });
-    document.getElementById("adminLogoutBtn").addEventListener("click",()=>{
-      adminUnlocked=false; adminPanel.classList.add("hidden"); adminLogin.classList.remove("hidden"); document.getElementById("adminLogoutBtn").classList.add("hidden"); document.getElementById("adminPassword").value=""; renderSlotsForSelectedDate(); renderNotifications(); showToast("ออกจากหน้าแอดมินแล้ว");
-    });
+    const ADMIN_PASSWORD = "30251421";
+	const ADMIN_LOGIN_KEY = "ace_admin_logged_in";
+
+const adminLogin = document.getElementById("adminLogin");
+const adminPanel = document.getElementById("adminPanel");
+const adminPasswordInput = document.getElementById("adminPassword");
+const adminLoginBtn = document.getElementById("adminLoginBtn");
+
+function openAdminPanel() {
+  adminUnlocked = true;
+  adminLogin.classList.add("hidden");
+  adminPanel.classList.remove("hidden");
+  document.getElementById("adminLogoutBtn").classList.remove("hidden");
+
+  if (selectedKey) {
+    document.getElementById("adminDatePicker").value = selectedKey;
+  }
+
+  renderSlotsForSelectedDate();
+  renderServiceAdminTable();
+  renderNotifications();
+  fillAdminContentForms();
+  renderPromoAdminForms();
+  renderCategoryAdmin();
+}
+
+adminLoginBtn.addEventListener("click", () => {
+  const pass = adminPasswordInput.value.trim();
+
+  if (!pass) {
+    showToast("กรุณากรอกรหัสผ่าน");
+    return;
+  }
+
+  if (pass === ADMIN_PASSWORD) {
+    localStorage.setItem(ADMIN_LOGIN_KEY, "true");
+    openAdminPanel();
+    showToast("เข้าสู่หน้าแอดมินแล้ว");
+  } else {
+    showToast("รหัสผ่านไม่ถูกต้อง");
+  }
+});
+
+adminPasswordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    adminLoginBtn.click();
+  }
+});
+
+    document.getElementById("adminLogoutBtn").addEventListener("click", () => {
+  adminUnlocked = false;
+  localStorage.removeItem(ADMIN_LOGIN_KEY);
+
+  adminPanel.classList.add("hidden");
+  adminLogin.classList.remove("hidden");
+  document.getElementById("adminLogoutBtn").classList.add("hidden");
+  document.getElementById("adminPassword").value = "";
+
+  renderSlotsForSelectedDate();
+  renderNotifications();
+  showToast("ออกจากหน้าแอดมินแล้ว");
+});
 
     async function loadBookingsFromSupabase(){
       try{
@@ -970,6 +1101,9 @@
         console.error(err);
       }
     }
+if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
+  openAdminPanel();
+}
 
     renderHomePage();
     renderPageText();
@@ -1063,7 +1197,7 @@
     "รวมข้อมูลติดต่อ เวลาเปิดทำการ และแผนที่":"Contact information, opening hours, and map.",
     "โทรศัพท์":"Phone",
     "LINE Official":"LINE Official",
-    "ทัก LINE":"Chat on LINE",
+    "ทัก LINE":"https://lin.ee/uoxebOP",
     "ที่อยู่คลินิก":"Clinic Address",
     "123 ถนนสุขุมวิท แขวงตัวอย่าง เขตวัฒนา กรุงเทพมหานคร 10110":"123 Sukhumvit Road, Sample Subdistrict, Watthana District, Bangkok 10110",
     "คลินิกเปิด 11:00 - 20:00 น.":"Clinic open 11:00 AM - 8:00 PM",
@@ -1257,7 +1391,8 @@
     if (thBtn) thBtn.addEventListener('click', function(){ window.setLang('th'); });
     if (enBtn) enBtn.addEventListener('click', function(){ window.setLang('en'); });
     applyLang();
-    new MutationObserver(scheduleApply).observe(document.body, { childList:true, subtree:true, characterData:true });
+
+    
   });
 })();
 </script>
