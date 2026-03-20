@@ -913,7 +913,7 @@ function effectiveDayStatus(dateKey){
   return countFreeSlots(dateKey) === 0 ? "full" : "available";
 }
 
-async function updateBookingStatus(id, status) {
+async function updateBookingStatus(id, status){
   try {
     const { error } = await supabaseClient
       .from("bookings")
@@ -922,22 +922,20 @@ async function updateBookingStatus(id, status) {
 
     if (error) {
       console.error(error);
-      showToast("อัปเดตสถานะไม่สำเร็จ");
+      showToast("อัปเดตไม่สำเร็จ");
       return;
     }
 
-    bookings = bookings.map(b =>
-      String(b.id) === String(id) ? { ...b, status } : b
-    );
-
-    renderAdminBookings();
-    renderMyBooking();
     showToast(status === "approved" ? "ยืนยันคิวแล้ว" : "ยกเลิกคิวแล้ว");
+
+    // โหลดใหม่จาก DB
+    await loadBookingsFromSupabase();
+
   } catch (err) {
     console.error(err);
-    showToast("เกิดข้อผิดพลาด");
   }
 }
+
 window.updateBookingStatus = updateBookingStatus;
    
     function renderAdminBookings(){
