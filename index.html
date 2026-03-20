@@ -77,17 +77,6 @@
     .notify-box{position:sticky;top:88px;z-index:40;margin-bottom:16px}.notify-item{background:#fff0f7;border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px}
     .notify-item strong{color:var(--pink-dark)} .notify-close{float:right;border:none;background:transparent;font-size:18px;cursor:pointer;color:#be185d;font-weight:800;line-height:1}
     .section-divider{margin-top:20px}.admin-page-nav{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 20px}.admin-page-btn{border:none;background:#fff;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;border:1px solid var(--border);color:var(--pink-dark)}.admin-page-btn.active,.admin-page-btn:hover{background:var(--pink-soft)}.admin-editor{display:none}.admin-editor.active{display:block}
-
-    .booking-alert-overlay{position:fixed;inset:0;background:rgba(15,23,42,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:120}
-    .booking-alert-overlay.show{display:flex}
-    .booking-alert-card{width:min(520px,100%);background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 60px rgba(15,23,42,.22);padding:22px;position:relative}
-    .booking-alert-close{position:absolute;top:12px;right:14px;border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--pink-dark);font-weight:900}
-    .booking-alert-title{margin:0 0 10px;font-size:26px;color:var(--pink-dark)}
-    .booking-alert-sub{margin:0 0 14px;color:var(--muted);font-size:14px}
-    .booking-alert-grid{display:grid;gap:10px}
-    .booking-alert-row{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:10px 12px;border-radius:14px;background:#fff8fb;border:1px solid var(--border)}
-    .booking-alert-row strong{color:var(--pink-dark)}
-
     @media (max-width:980px){.hero,.grid-3,.grid-2,.grid-admin,.calendar-wrap,.slot-list{grid-template-columns:1fr}.nav{padding:10px 0;flex-direction:column;align-items:flex-start}}
   </style>
 </head>
@@ -155,19 +144,9 @@
             <div class="field"><label>วันที่นัดหมาย</label><input id="serviceDate" type="date" required></div>
             <div class="field"><label>เลือกบริการ</label><select id="serviceSelect"><option value="">ลูกค้ามีคอร์ส / ไม่เลือกบริการ</option></select></div>
             <div class="field"><label>เวลานัดหมาย</label><select id="serviceTime" required><option value="">กรุณาเลือกวันที่จากปฏิทินก่อน</option></select></div>
-            <div class="field"><label>ผู้ให้บริการ</label><select id="doctorType"><option>แพทย์</option><option>พนักงานทรีตเมนต์</option><option>พนักงานเลเซอร์</option></select></div>
-            <div class="field">
-  <label>หมายเหตุ</label>
-  <textarea 
-    id="bookingNote" 
-    placeholder="แจ้งรายการที่ทำ"
-    data-placeholder-th="แจ้งรายการที่ทำ"
-    data-placeholder-en="Describe selected services"
-    data-i18n-placeholder-th="แจ้งรายการที่ทำ"
-    data-i18n-placeholder-en="Describe selected services"
-  ></textarea>
-</div>
-<button class="btn btn-primary" type="submit">ส่งนัดหมาย</button>
+            <div class="field"><label>ผู้ให้บริการ</label><select id="doctorType"><option>แพทย์ผิวหนัง</option><option>พนักงานทรีตเมนต์</option><option>ที่ปรึกษาความงาม</option></select></div>
+            <div class="field"><label>หมายเหตุ</label><textarea id="bookingNote" placeholder="รายละเอียดเพิ่มเติม" data-placeholder-th="รายละเอียดเพิ่มเติม" data-placeholder-en="Additional details" data-i18n-placeholder-th="รายละเอียดเพิ่มเติม" data-i18n-placeholder-en="Additional details"></textarea></div>
+            <button class="btn btn-primary" type="submit">ส่งนัดหมาย</button>
           </form>
         </div>
       </div>
@@ -204,7 +183,7 @@
         <div class="panel">
           <div class="contact-list">
             <div class="contact-item"><div class="icon">📞</div><div><h3>โทรศัพท์</h3><p class="muted" id="contactPhone"></p></div></div>
-            <div class="contact-item"><div class="icon">💬</div><div><h3>LINE Official</h3><p class="muted" id="contactLine"></p><a class="btn btn-primary" href="https://lin.ee/uoxebOP" target="_blank" rel="noopener noreferrer">ทัก LINE</a></div></div>
+            <div class="contact-item"><div class="icon">💬</div><div><h3>LINE Official</h3><p class="muted" id="contactLine"></p><a class="btn btn-primary" href="https://line.me/" target="_blank" rel="noopener noreferrer">ทัก LINE</a></div></div>
             <div class="contact-item"><div class="icon">📍</div><div><h3>ที่อยู่คลินิก</h3><p class="muted" id="contactAddress"></p></div></div>
             <div class="contact-item"><div class="icon">🕒</div><div><h3>เวลาเปิดทำการ</h3><p class="muted" id="contactOpenHours"></p></div></div>
           </div>
@@ -409,18 +388,6 @@
     </section>
   </main>
 
-
-  <div class="booking-alert-overlay" id="bookingAlertOverlay">
-    <div class="booking-alert-card">
-      <button class="booking-alert-close" type="button" id="bookingAlertClose">×</button>
-      <h3 class="booking-alert-title">มีนัดหมายใหม่เข้ามา</h3>
-      <p class="booking-alert-sub">การแจ้งเตือนนี้จะค้างบนหน้าจอจนกว่าจะกดปิดรับทราบ</p>
-      <div class="booking-alert-grid" id="bookingAlertContent"></div>
-      <div style="height:14px"></div>
-      <button class="btn btn-primary" type="button" id="bookingAlertAcknowledgeBtn">ปิดรับทราบ</button>
-    </div>
-  </div>
-
   <footer class="footer">© 2026 ACE Clinic · เอซ คลินิกเวชกรรม</footer>
   <div class="toast" id="toast"></div>
 
@@ -430,8 +397,7 @@
     const SUPABASE_ANON_KEY = "sb_publishable_Hdkb24wPoLiORmo74xZkWg_KxDAwJaZ";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
-
-	<script>
+<script>
 async function enableBrowserNotifications() {
   if (!("Notification" in window)) {
     console.warn("Browser นี้ไม่รองรับ Notification");
@@ -446,18 +412,13 @@ async function enableBrowserNotifications() {
     const permission = await Notification.requestPermission();
 
     if (permission === "granted") {
-      new Notification("เปิดแจ้งเตือนสำเร็จ", {
-        body: "ตอนนี้เบราว์เซอร์พร้อมรับแจ้งเตือนนัดหมายแล้ว",
-        icon: "KPL-logo.jpg"
-      });
       return true;
     }
-
-    return false;
   }
 
-  return false;
+  return Notification.permission === "granted";
 }
+
 function showBrowserBookingNotification(booking) {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
@@ -527,7 +488,7 @@ function showBrowserBookingNotification(booking) {
     try { slotStatusMap = JSON.parse(localStorage.getItem(STORAGE_KEYS.slotStatusMap) || "{}"); } catch(e){}
     try { daySettingsMap = JSON.parse(localStorage.getItem(STORAGE_KEYS.daySettingsMap) || "{}"); } catch(e){}
 
-    function saveAllData(){
+    async function saveAllData(){
       localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
       localStorage.setItem(STORAGE_KEYS.services, JSON.stringify(services));
       localStorage.setItem(STORAGE_KEYS.promotions, JSON.stringify(promotions));
@@ -537,11 +498,27 @@ function showBrowserBookingNotification(booking) {
       localStorage.setItem(STORAGE_KEYS.dayStatusMap, JSON.stringify(dayStatusMap));
       localStorage.setItem(STORAGE_KEYS.slotStatusMap, JSON.stringify(slotStatusMap));
       localStorage.setItem(STORAGE_KEYS.daySettingsMap, JSON.stringify(daySettingsMap));
+      try{
+        await supabaseClient.from("app_state").upsert([{
+          id:1,
+          categories: categories,
+          services: services,
+          promotions: promotions,
+          site_content: siteContent,
+          notifications: notifications,
+          day_status_map: dayStatusMap,
+          slot_status_map: slotStatusMap,
+          day_settings_map: daySettingsMap
+        }], { onConflict:"id" });
+      }catch(err){
+        console.warn("saveAllData app_state skipped:", err);
+      }
     }
 
     let currentDate = new Date(), selectedKey = null, adminUnlocked = false;
 let bookingPollStarted = false;
 let lastSeenBookingId = "";
+let bookingsChannel = null;
     const toast = document.getElementById("toast");
 
     function showToast(message){
@@ -557,6 +534,23 @@ let lastSeenBookingId = "";
 
     function saveCustomerProfile(profile){ localStorage.setItem(STORAGE_KEYS.customerProfile, JSON.stringify(profile)); }
     function getCustomerProfile(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEYS.customerProfile)||"null")}catch(e){return null} }
+
+    async function loadAppStateFromSupabase(){
+      try{
+        const { data, error } = await supabaseClient.from("app_state").select("*").eq("id",1).maybeSingle();
+        if(error || !data) return;
+        if(Array.isArray(data.categories) && data.categories.length) categories = data.categories;
+        if(Array.isArray(data.services) && data.services.length) services = data.services;
+        if(Array.isArray(data.promotions) && data.promotions.length) promotions = data.promotions;
+        if(data.site_content) siteContent = data.site_content;
+        if(Array.isArray(data.notifications)) notifications = data.notifications;
+        if(data.day_status_map) dayStatusMap = data.day_status_map;
+        if(data.slot_status_map) slotStatusMap = data.slot_status_map;
+        if(data.day_settings_map) daySettingsMap = data.day_settings_map;
+      }catch(err){
+        console.warn("loadAppStateFromSupabase skipped:", err);
+      }
+    }
 
     function renderMyBooking(){
       const box=document.getElementById("myBookingBox"); if(!box) return;
@@ -816,128 +810,40 @@ let lastSeenBookingId = "";
       document.getElementById("contactOpenHoursInputField").value = siteContent.contactOpenHours;
       document.getElementById("mapPlaceholderInput").value = siteContent.mapPlaceholder;
     }
-window.addToCart = function(id){
-  const item = services.find(s => s.id === id), existing = cart.find(c => c.id === id);
-  if(existing){ existing.qty += 1; } else { cart.push({ ...item, qty: 1 }); }
-  renderCart();
-  const select = document.getElementById("serviceSelect");
-  if(select) select.value = String(id);
-  showToast("เพิ่ม " + item.name + " แล้ว");
-  showPage("booking");
-}
 
-window.increaseQty = function(id){
-  const item = cart.find(c => c.id === id);
-  if(item){
-    item.qty += 1;
-    renderCart();
-  }
-}
-
-window.decreaseQty = function(id){
-  const idx = cart.findIndex(c => c.id === id);
-  if(idx > -1){
-    if(cart[idx].qty > 1){
-      cart[idx].qty -= 1;
-    } else {
-      cart.splice(idx, 1);
+    window.addToCart = function(id){
+      const item=services.find(s=>s.id===id), existing=cart.find(c=>c.id===id);
+      if(existing){ existing.qty+=1; } else { cart.push({...item,qty:1}); }
+      renderCart(); const select=document.getElementById("serviceSelect"); if(select) select.value=String(id);
+      showToast("เพิ่ม " + item.name + " แล้ว"); showPage("booking");
     }
-    renderCart();
-  }
-}
+    window.increaseQty = function(id){ const item=cart.find(c=>c.id===id); if(item){ item.qty+=1; renderCart(); } }
+    window.decreaseQty = function(id){ const idx=cart.findIndex(c=>c.id===id); if(idx>-1){ if(cart[idx].qty>1){ cart[idx].qty-=1 } else { cart.splice(idx,1) } renderCart(); } }
 
-const cartTableBody = document.getElementById("cartTableBody"), cartTotal = document.getElementById("cartTotal");
-
-function renderCart(){
-  if(cart.length === 0){
-    cartTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">ยังไม่มีบริการที่เลือก</td></tr>';
-    cartTotal.textContent = "฿0";
-    return;
-  }
-
-  cartTableBody.innerHTML = cart.map(item => `
-    <tr>
-      <td>${item.name}</td>
-      <td>฿${item.price}</td>
-      <td>
-        <button onclick="decreaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">-</button>
-        <span style="display:inline-block;min-width:28px;text-align:center;">${item.qty}</span>
-        <button onclick="increaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">+</button>
-      </td>
-      <td>฿${item.price * item.qty}</td>
-    </tr>
-  `).join("");
-
-  cartTotal.textContent = "฿" + cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-}
-
-function getDaySettings(dateKey){
-  return daySettingsMap[dateKey] || {
-    clinicOpen: "11:00",
-    clinicClose: "20:00",
-    doctorIn: false,
-    doctorStart: "14:00",
-    doctorEnd: "19:00"
-  };
-}
-
-function getSlotsForDate(dateKey){
-  const s = getDaySettings(dateKey);
-  let start = timeToMinutes(s.clinicOpen), end = timeToMinutes(s.clinicClose);
-  if(end < start) return [];
-  const arr = [];
-  for(let t = start; t <= end; t += 20){
-    arr.push(minutesToTime(t));
-  }
-  return arr;
-}
-
-function getSlotState(dateKey, time){
-  if(!slotStatusMap[dateKey]) slotStatusMap[dateKey] = {};
-  return slotStatusMap[dateKey][time] || "free";
-}
-
-function setSlotState(dateKey, time, state){
-  if(!slotStatusMap[dateKey]) slotStatusMap[dateKey] = {};
-  slotStatusMap[dateKey][time] = state;
-}
-
-function countFreeSlots(dateKey){
-  if((dayStatusMap[dateKey] || "available") === "holiday") return 0;
-  return getSlotsForDate(dateKey).filter(t => getSlotState(dateKey, t) === "free").length;
-}
-
-function effectiveDayStatus(dateKey){
-  const base = dayStatusMap[dateKey] || "available";
-  if(base === "holiday") return "holiday";
-  return countFreeSlots(dateKey) === 0 ? "full" : "available";
-}
-
-async function updateBookingStatus(id, status){
-  try {
-    const { error } = await supabaseClient
-      .from("bookings")
-      .update({ status: status })
-      .eq("id", id);
-
-    if (error) {
-      console.error(error);
-      showToast("อัปเดตไม่สำเร็จ");
-      return;
+    const cartTableBody=document.getElementById("cartTableBody"), cartTotal=document.getElementById("cartTotal");
+    function renderCart(){
+      if(cart.length===0){ cartTableBody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted)">ยังไม่มีบริการที่เลือก</td></tr>'; cartTotal.textContent="฿0"; return; }
+      cartTableBody.innerHTML=cart.map(item=>`
+        <tr><td>${item.name}</td><td>฿${item.price}</td><td><button onclick="decreaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">-</button> <span style="display:inline-block;min-width:28px;text-align:center;">${item.qty}</span> <button onclick="increaseQty(${item.id})" style="border:none;background:#fde7f3;padding:6px 10px;border-radius:8px;cursor:pointer;">+</button></td><td>฿${item.price*item.qty}</td></tr>`).join("");
+      cartTotal.textContent="฿"+cart.reduce((sum,item)=>sum+item.price*item.qty,0);
     }
 
-    showToast(status === "approved" ? "ยืนยันคิวแล้ว" : "ยกเลิกคิวแล้ว");
+    function getDaySettings(dateKey){ return daySettingsMap[dateKey] || {clinicOpen:"11:00",clinicClose:"20:00",doctorIn:false,doctorStart:"14:00",doctorEnd:"19:00"}; }
+    function getSlotsForDate(dateKey){
+      const s=getDaySettings(dateKey); let start=timeToMinutes(s.clinicOpen), end=timeToMinutes(s.clinicClose); if(end<start) return [];
+      const arr=[]; for(let t=start;t<=end;t+=20){ arr.push(minutesToTime(t)); } return arr;
+    }
+    function getSlotState(dateKey,time){ if(!slotStatusMap[dateKey]) slotStatusMap[dateKey]={}; return slotStatusMap[dateKey][time] || "free"; }
+    function setSlotState(dateKey,time,state){ if(!slotStatusMap[dateKey]) slotStatusMap[dateKey]={}; slotStatusMap[dateKey][time]=state; }
+    function countFreeSlots(dateKey){ if((dayStatusMap[dateKey]||"available")==="holiday") return 0; return getSlotsForDate(dateKey).filter(t=>getSlotState(dateKey,t)==="free").length; }
+    function effectiveDayStatus(dateKey){ const base=dayStatusMap[dateKey]||"available"; if(base==="holiday") return "holiday"; return countFreeSlots(dateKey)===0?"full":"available"; }
 
-    // โหลดใหม่จาก DB
-    await loadBookingsFromSupabase();
+    function updateBookingStatus(id,status){
+      bookings = bookings.map(b=>b.id===id?{...b,status}:b);
+      saveAllData(); renderAdminBookings(); renderMyBooking(); showToast(status==="approved"?"ยืนยันคิวแล้ว":"ยกเลิกคิวแล้ว");
+    }
+    window.updateBookingStatus = updateBookingStatus;
 
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-window.updateBookingStatus = updateBookingStatus;
-   
     function renderAdminBookings(){
       const body=document.getElementById("bookingAdminBody");
       if(bookings.length===0){ body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">ยังไม่มีข้อมูลนัดหมาย</td></tr>'; return; }
@@ -948,12 +854,7 @@ window.updateBookingStatus = updateBookingStatus;
           <td>${b.name}</td><td>${b.phone}</td><td>${b.date}<br>${b.time}</td>
           <td>${b.services}<br><span class="muted">฿${b.total}</span></td>
           <td><span style="color:${statusColor};font-weight:800">${statusText}</span></td>
-          <td>
-  <div class="inline-actions">
-    <button class="tiny-btn" onclick="updateBookingStatus('${b.id}','approved')">ยืนยัน</button>
-    <button class="tiny-btn" onclick="updateBookingStatus('${b.id}','cancelled')">ยกเลิก</button>
-  </div>
-</td>
+          <td><div class="inline-actions"><button class="tiny-btn" onclick="updateBookingStatus(${b.id},'approved')">ยืนยัน</button><button class="tiny-btn" onclick="updateBookingStatus(${b.id},'cancelled')">ยกเลิก</button></div></td>
         </tr>`;
       }).join("");
     }
@@ -980,13 +881,8 @@ window.updateBookingStatus = updateBookingStatus;
       for(let i=0;i<firstDay;i++){ const empty=document.createElement("div"); empty.className="day muted"; calendarDays.appendChild(empty); }
       for(let day=1;day<=lastDate;day++){
         const key=getDateKey(year,month,day), status=effectiveDayStatus(key), freeCount=countFreeSlots(key), settings=getDaySettings(key), doctorLine=settings.doctorIn?("หมอเข้า "+settings.doctorStart+"-"+settings.doctorEnd):"";
-const el=document.createElement("div");
-el.className="day "+status+(selectedKey===key?" selected":"");
-el.innerHTML=`<div class="num">${day}</div>
-<div class="status">${status==="available"?"คิวว่าง":status==="full"?"คิวเต็ม":"วันหยุด"}</div>
-<div class="substatus">${settings.clinicOpen} - ${settings.clinicClose}</div>
-${doctorLine?`<div style="color:#2563eb;font-weight:800;font-size:12px">${doctorLine}</div>`:""}
-<div class="doctor">${(dayStatusMap[key]||"available")==="holiday"?"ปิดคลินิก":"ว่าง "+freeCount+" ช่วงเวลา"}</div>`;
+        const el=document.createElement("div"); el.className="day "+status+(selectedKey===key?" selected":"");
+        el.innerHTML=`<div class="num">${day}</div><div class="status">${status==="available"?"คิวว่าง":status==="full"?"คิวเต็ม":"วันหยุด"}</div><div class="substatus">${settings.clinicOpen} - ${settings.clinicClose}</div>${doctorLine?`<div class="doctor in">${doctorLine}</div>`:""}<div class="doctor">${(dayStatusMap[key]||"available")==="holiday"?"ปิดคลินิก":"ว่าง "+freeCount+" ช่วงเวลา"}</div>`;
         el.onclick=()=>selectDateByKey(key); calendarDays.appendChild(el);
       }
     }
@@ -1049,37 +945,39 @@ ${doctorLine?`<div style="color:#2563eb;font-weight:800;font-size:12px">${doctor
       try {
         let insertError = null;
 
-       // พยายามบันทึกแบบเต็มก่อน
-let result = await supabaseClient.from("bookings").insert([{
-  name: booking.name,
-  phone: booking.phone,
-  booking_date: booking.date,
-  booking_time: booking.time,
-  status: booking.status
-}]);
+        // พยายามบันทึกแบบเต็มก่อน
+        let result = await supabaseClient.from("bookings").insert([{
+          name: booking.name,
+          phone: booking.phone,
+          booking_date: booking.date,
+          booking_time: booking.time,
+          services: booking.services,
+          note: booking.note,
+          status: booking.status
+        }]);
 
-insertError = result.error || null;
+        insertError = result.error || null;
 
-// ถ้าตารางยังไม่มีคอลัมน์ status ให้ลองบันทึกแบบพื้นฐาน
-if (insertError) {
-  console.warn("Insert with status failed, retrying basic insert:", insertError);
-  result = await supabaseClient.from("bookings").insert([{
-    name: booking.name,
-    phone: booking.phone,
-    booking_date: booking.date,
-    booking_time: booking.time
-  }]);
-  insertError = result.error || null;
-}
+        // ถ้าตารางยังไม่มีบางคอลัมน์ ให้ลองลดฟิลด์ลง
+        if (insertError) {
+          console.warn("Insert full booking failed, retrying basic insert:", insertError);
+          result = await supabaseClient.from("bookings").insert([{
+            name: booking.name,
+            phone: booking.phone,
+            booking_date: booking.date,
+            booking_time: booking.time,
+            status: booking.status
+          }]);
+          insertError = result.error || null;
+        }
 
-if (insertError) {
-  console.error(insertError);
-  showToast("ส่งข้อมูลไม่สำเร็จ");
-  return;
-}
+        if (insertError) {
+          console.error(insertError);
+          showToast("ส่งข้อมูลไม่สำเร็จ");
+          return;
+        }
 
-
-        try {
+try {
           const notifyRes = await fetch(
             "https://dmiobtpxybrhdklsmdru.supabase.co/functions/v1/line-booking-notify",
             {
@@ -1113,7 +1011,7 @@ if (insertError) {
         return;
       }
 
-      bookings.unshift(booking); addNotification(booking); setSlotState(date,time,"busy"); saveAllData();
+      bookings.unshift(booking); addNotification(booking); setSlotState(date,time,"busy"); await saveAllData(); await loadBookingsFromSupabase();
       renderAdminBookings(); renderMyBooking(); renderCalendar(); if(selectedKey===date){ renderSlotsForSelectedDate(); syncDateTimeInputs(); }
       showToast("ส่งนัดหมายเรียบร้อยแล้ว"); this.reset(); cart.length=0; renderCart(); renderServiceDropdown(); serviceTimeSelect.innerHTML='<option value="">กรุณาเลือกวันที่จากปฏิทินก่อน</option>';
     });
@@ -1204,9 +1102,7 @@ function openAdminPanel() {
     bookingPollStarted = true;
 
     loadBookingsFromSupabase().then(() => {
-      if (bookings.length > 0) {
-        lastSeenBookingId = String(bookings[0].id || "");
-      }
+      lastBookingCount = bookings.length;
     });
 
     setInterval(() => {
@@ -1215,7 +1111,7 @@ function openAdminPanel() {
   }
 }
 
-adminLoginBtn.addEventListener("click", async () => {
+adminLoginBtn.addEventListener("click", () => {
   const pass = adminPasswordInput.value.trim();
 
   if (!pass) {
@@ -1224,7 +1120,6 @@ adminLoginBtn.addEventListener("click", async () => {
   }
 
   if (pass === ADMIN_PASSWORD) {
-    await enableBrowserNotifications();
     localStorage.setItem(ADMIN_LOGIN_KEY, "true");
     openAdminPanel();
     showToast("เข้าสู่หน้าแอดมินแล้ว");
@@ -1232,6 +1127,13 @@ adminLoginBtn.addEventListener("click", async () => {
     showToast("รหัสผ่านไม่ถูกต้อง");
   }
 });
+
+adminPasswordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    adminLoginBtn.click();
+  }
+});
+
     document.getElementById("adminLogoutBtn").addEventListener("click", () => {
   adminUnlocked = false;
   localStorage.removeItem(ADMIN_LOGIN_KEY);
@@ -1245,31 +1147,36 @@ adminLoginBtn.addEventListener("click", async () => {
   renderNotifications();
   showToast("ออกจากหน้าแอดมินแล้ว");
 });
-document.getElementById("bookingAlertClose").addEventListener("click", hidePersistentBookingAlert);
-document.getElementById("bookingAlertAcknowledgeBtn").addEventListener("click", hidePersistentBookingAlert);
-document.getElementById("bookingAlertOverlay").addEventListener("click", (e) => {
-  if (e.target.id === "bookingAlertOverlay") hidePersistentBookingAlert();
-});
+function subscribeToBookingChanges(){
+  if (bookingsChannel) return;
 
-function showPersistentBookingAlert(booking){
-  const overlay = document.getElementById("bookingAlertOverlay");
-  const content = document.getElementById("bookingAlertContent");
-  if(!overlay || !content || !booking) return;
+  bookingsChannel = supabaseClient
+    .channel("bookings-realtime")
+    .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, async (payload) => {
+      const record = payload.new || payload.old || {};
+      await loadBookingsFromSupabase();
 
-  content.innerHTML = `
-    <div class="booking-alert-row"><strong>ชื่อ</strong><span>${booking.name || "-"}</span></div>
-    <div class="booking-alert-row"><strong>เบอร์โทร</strong><span>${booking.phone || "-"}</span></div>
-    <div class="booking-alert-row"><strong>วันที่</strong><span>${booking.date || "-"}</span></div>
-    <div class="booking-alert-row"><strong>เวลา</strong><span>${booking.time || "-"}</span></div>
-    <div class="booking-alert-row"><strong>บริการ</strong><span>${booking.services || "-"}</span></div>
-    <div class="booking-alert-row"><strong>สถานะ</strong><span>${booking.status || "pending"}</span></div>
-  `;
-  overlay.classList.add("show");
-}
-
-function hidePersistentBookingAlert(){
-  const overlay = document.getElementById("bookingAlertOverlay");
-  if(overlay) overlay.classList.remove("show");
+      if (payload.eventType === "INSERT" && adminUnlocked) {
+        const newestId = String(record.id || "");
+        if (newestId && newestId !== lastSeenBookingId) {
+          lastSeenBookingId = newestId;
+          const booking = {
+            id: record.id,
+            name: record.name || "",
+            phone: record.phone || "",
+            date: record.booking_date || "",
+            time: record.booking_time || "",
+            services: record.services || "-",
+            status: record.status || "pending"
+          };
+          const ok = await enableBrowserNotifications();
+          if (ok) showBrowserBookingNotification(booking);
+          showPersistentBookingAlert(booking);
+          showToast("มีนัดหมายใหม่เข้ามา");
+        }
+      }
+    })
+    .subscribe();
 }
 
 async function checkNewBookingsForAdmin() {
@@ -1279,7 +1186,7 @@ async function checkNewBookingsForAdmin() {
     const { data, error } = await supabaseClient
       .from("bookings")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("booking_date", { ascending: false });
 
     if (error) {
       console.error("checkNewBookingsForAdmin error:", error);
@@ -1287,62 +1194,6 @@ async function checkNewBookingsForAdmin() {
     }
 
     const latestBookings = (data || []).map(item => ({
-  id: item.id,
-  customerKey: item.phone || item.name || String(item.id),
-  name: item.name || "",
-  phone: item.phone || "",
-  date: item.booking_date || "",
-  time: item.booking_time || "",
-  doctor: "",
-  note: item.note || "",
-  services: item.services || "-",
-  total: 0,
-  status: item.status || "pending"
-}));
-
-if (latestBookings.length > 0) {
-  const newest = latestBookings[0];
-  const newestId = String(newest.id || "");
-
-  if (lastSeenBookingId && newestId && newestId !== lastSeenBookingId) {
-    const ok = await enableBrowserNotifications();
-
-if (ok) {
-  showBrowserBookingNotification({
-    name: newest.name,
-    date: newest.date,
-    time: newest.time
-  });
-}
-
-    showPersistentBookingAlert(newest);
-    showToast("มีนัดหมายใหม่เข้ามา");
-  }
-
-  lastSeenBookingId = newestId;
-}
-
-bookings = latestBookings;
-renderAdminBookings();
-renderMyBooking();
-} catch (err) {
-  console.error("Polling error:", err);
-}
-}
-
-async function loadBookingsFromSupabase() {
-  try {
-    const { data, error } = await supabaseClient
-      .from("bookings")
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    bookings = (data || []).map(item => ({
       id: item.id,
       customerKey: item.phone || item.name || String(item.id),
       name: item.name || "",
@@ -1350,41 +1201,88 @@ async function loadBookingsFromSupabase() {
       date: item.booking_date || "",
       time: item.booking_time || "",
       doctor: "",
-      note: item.note || "",
-      services: item.services || "-",
+      note: "",
+      services: "-",
       total: 0,
       status: item.status || "pending"
     }));
 
-    if (bookings.length > 0) {
-      lastSeenBookingId = String(bookings[0].id || "");
+    if (lastBookingCount > 0 && latestBookings.length > lastBookingCount) {
+      const newest = latestBookings[0];
+
+      showBrowserBookingNotification({
+        name: newest.name,
+        date: newest.date,
+        time: newest.time
+      });
+
+      showToast("มีนัดหมายใหม่เข้ามา");
     }
+
+    bookings = latestBookings;
+    lastBookingCount = latestBookings.length;
 
     renderAdminBookings();
     renderMyBooking();
   } catch (err) {
-    console.error(err);
+    console.error("Polling error:", err);
   }
 }
 
-if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
-  openAdminPanel();
+    async function loadBookingsFromSupabase(){
+      try{
+        const { data, error } = await supabaseClient
+          .from("bookings")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if(error){ console.error(error); return; }
+        bookings = (data || []).map(item => ({
+          id: item.id,
+          customerKey: item.phone || item.name || String(item.id),
+          name: item.name || "",
+          phone: item.phone || "",
+          date: item.booking_date || "",
+          time: item.booking_time || "",
+          doctor: "",
+          note: item.note || "",
+          services: item.services || "-",
+          total: 0,
+          status: item.status || "pending"
+        }));
+        renderAdminBookings();
+        renderMyBooking();
+      }catch(err){
+        console.error(err);
+      }
+    }
+async function initializeApp(){
+  await loadAppStateFromSupabase();
+  renderHomePage();
+  renderPageText();
+  renderCategoryFilterButtons();
+  renderCategoryAdmin();
+  renderPromoAdminForms();
+  renderServices();
+  renderServiceDropdown();
+  renderCart();
+  renderCalendar();
+  renderNotifications();
+  renderMyBooking();
+  await loadBookingsFromSupabase();
+
+  if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
+    openAdminPanel();
+  }
 }
 
+initializeApp();
 enableBrowserNotifications();
-renderHomePage();
-renderPageText();
-renderCategoryFilterButtons();
-renderCategoryAdmin();
-renderPromoAdminForms();
-renderServices();
-renderServiceDropdown();
-renderCart();
-renderCalendar();
-renderNotifications();
-renderMyBooking();
-loadBookingsFromSupabase();
-</script>
+  </script>
+
+
+
+
+
 
 <script>
 (function(){
@@ -1459,7 +1357,7 @@ loadBookingsFromSupabase();
     "รวมข้อมูลติดต่อ เวลาเปิดทำการ และแผนที่":"Contact information, opening hours, and map.",
     "โทรศัพท์":"Phone",
     "LINE Official":"LINE Official",
-    "ทัก LINE":"Chat on LINE",
+    "ทัก LINE":"https://lin.ee/uoxebOP",
     "ที่อยู่คลินิก":"Clinic Address",
     "123 ถนนสุขุมวิท แขวงตัวอย่าง เขตวัฒนา กรุงเทพมหานคร 10110":"123 Sukhumvit Road, Sample Subdistrict, Watthana District, Bangkok 10110",
     "คลินิกเปิด 11:00 - 20:00 น.":"Clinic open 11:00 AM - 8:00 PM",
