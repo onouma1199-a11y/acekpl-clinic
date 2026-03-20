@@ -488,32 +488,47 @@ function showBrowserBookingNotification(booking) {
     try { slotStatusMap = JSON.parse(localStorage.getItem(STORAGE_KEYS.slotStatusMap) || "{}"); } catch(e){}
     try { daySettingsMap = JSON.parse(localStorage.getItem(STORAGE_KEYS.daySettingsMap) || "{}"); } catch(e){}
 
-    async function saveAllData(){
-      localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
-      localStorage.setItem(STORAGE_KEYS.services, JSON.stringify(services));
-      localStorage.setItem(STORAGE_KEYS.promotions, JSON.stringify(promotions));
-      localStorage.setItem(STORAGE_KEYS.siteContent, JSON.stringify(siteContent));
-      localStorage.setItem(STORAGE_KEYS.bookings, JSON.stringify(bookings));
-      localStorage.setItem(STORAGE_KEYS.notifications, JSON.stringify(notifications));
-      localStorage.setItem(STORAGE_KEYS.dayStatusMap, JSON.stringify(dayStatusMap));
-      localStorage.setItem(STORAGE_KEYS.slotStatusMap, JSON.stringify(slotStatusMap));
-      localStorage.setItem(STORAGE_KEYS.daySettingsMap, JSON.stringify(daySettingsMap));
-      try{
-        await supabaseClient.from("app_state").upsert([{
-          id:1,
-          categories: categories,
-          services: services,
-          promotions: promotions,
-          site_content: siteContent,
-          notifications: notifications,
-          day_status_map: dayStatusMap,
-          slot_status_map: slotStatusMap,
-          day_settings_map: daySettingsMap
-        }], { onConflict:"id" });
-      }catch(err){
-        console.warn("saveAllData app_state skipped:", err);
-      }
+   async function saveAllData(){
+  localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
+  localStorage.setItem(STORAGE_KEYS.services, JSON.stringify(services));
+  localStorage.setItem(STORAGE_KEYS.promotions, JSON.stringify(promotions));
+  localStorage.setItem(STORAGE_KEYS.siteContent, JSON.stringify(siteContent));
+  localStorage.setItem(STORAGE_KEYS.bookings, JSON.stringify(bookings));
+  localStorage.setItem(STORAGE_KEYS.notifications, JSON.stringify(notifications));
+  localStorage.setItem(STORAGE_KEYS.dayStatusMap, JSON.stringify(dayStatusMap));
+  localStorage.setItem(STORAGE_KEYS.slotStatusMap, JSON.stringify(slotStatusMap));
+  localStorage.setItem(STORAGE_KEYS.daySettingsMap, JSON.stringify(daySettingsMap));
+
+  try{
+    const payload = {
+      categories: categories,
+      services: services,
+      promotions: promotions,
+      site_content: siteContent,
+      notifications: notifications,
+      day_status_map: dayStatusMap,
+      slot_status_map: slotStatusMap,
+      day_settings_map: daySettingsMap
+    };
+
+    const { error } = await supabaseClient
+      .from("app_state")
+      .upsert(
+        [{
+          id: 1,
+          key: "main",
+          value: payload
+        }],
+        { onConflict: "id" }
+      );
+
+    if (error) {
+      console.error("saveAllData error:", error);
     }
+  } catch(err){
+    console.warn("saveAllData app_state skipped:", err);
+  }
+}
 
     let currentDate = new Date(), selectedKey = null, adminUnlocked = false;
 let bookingPollStarted = false;
@@ -536,22 +551,52 @@ let bookingsChannel = null;
     function getCustomerProfile(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEYS.customerProfile)||"null")}catch(e){return null} }
 
     async function loadAppStateFromSupabase(){
-      try{
-        const { data, error } = await supabaseClient.from("app_state").select("*").eq("id",1).maybeSingle();
-        if(error || !data) return;
-        if(Array.isArray(data.categories) && data.categories.length) categories = data.categories;
-        if(Array.isArray(data.services) && data.services.length) services = data.services;
-        if(Array.isArray(data.promotions) && data.promotions.length) promotions = data.promotions;
-        if(data.site_content) siteContent = data.site_content;
-        if(Array.isArray(data.notifications)) notifications = data.notifications;
-        if(data.day_status_map) dayStatusMap = data.day_status_map;
-        if(data.slot_status_map) slotStatusMap = data.slot_status_map;
-        if(data.day_settings_map) daySettingsMap = data.day_settings_map;
-      }catch(err){
-        console.warn("loadAppStateFromSupabase skipped:", err);
-      }
+  try{
+    const { data, error } = await supabaseClient
+      .from("app_state")
+      .select("*")
+      .eq("key", "main")
+      .maybeSingle();
+
+    if (error || !data) return;
+
+    const appState = data.value || {};
+
+    if (Array.isArray(appState.categories) && appState.categories.length) {
+      categories = appState.categories;
     }
 
+    if (Array.isArray(appState.services) && appState.services.length) {
+      services = appState.services;
+    }
+
+    if (Array.isArray(appState.promotions) && appState.promotions.length) {
+      promotions = appState.promotions;
+    }
+
+    if (appState.site_content) {
+      siteContent = appState.site_content;
+    }
+
+    if (Array.isArray(appState.notifications)) {
+      notifications = appState.notifications;
+    }
+
+    if (appState.day_status_map) {
+      dayStatusMap = appState.day_status_map;
+    }
+
+    if (appState.slot_status_map) {
+      slotStatusMap = appState.slot_status_map;
+    }
+
+    if (appState.day_settings_map) {
+      daySettingsMap = appState.day_settings_map;
+    }
+  }catch(err){
+    console.warn("loadAppStateFromSupabase skipped:", err);
+  }
+}
     function renderMyBooking(){
       const box=document.getElementById("myBookingBox"); if(!box) return;
       const profile=getCustomerProfile(); if(!profile){ box.innerHTML="ยังไม่มีข้อมูลนัดหมายในอุปกรณ์นี้"; return; }
@@ -1257,6 +1302,8 @@ async function checkNewBookingsForAdmin() {
     }
 async function initializeApp(){
   await loadAppStateFromSupabase();
+  await loadBookingsFromSupabase();
+
   renderHomePage();
   renderPageText();
   renderCategoryFilterButtons();
@@ -1268,21 +1315,12 @@ async function initializeApp(){
   renderCalendar();
   renderNotifications();
   renderMyBooking();
-  await loadBookingsFromSupabase();
 
   if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
     openAdminPanel();
   }
 }
-
-initializeApp();
-enableBrowserNotifications();
   </script>
-
-
-
-
-
 
 <script>
 (function(){
@@ -1555,11 +1593,8 @@ enableBrowserNotifications();
     
   });
 })();
+	initializeApp();
 </script>
 </body>
-
-
-
-
 
 </html>
