@@ -430,13 +430,24 @@
     const SUPABASE_ANON_KEY = "sb_publishable_Hdkb24wPoLiORmo74xZkWg_KxDAwJaZ";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
-<script>
+
+	<script>
 async function enableBrowserNotifications() {
-  if (!("Notification" in window)) return;
+  if (!("Notification" in window)) {
+    console.warn("Browser นี้ไม่รองรับ Notification");
+    return false;
+  }
+
+  if (Notification.permission === "granted") {
+    return true;
+  }
 
   if (Notification.permission === "default") {
-    await Notification.requestPermission();
+    const permission = await Notification.requestPermission();
+    return permission === "granted";
   }
+
+  return false;
 }
 
 function showBrowserBookingNotification(booking) {
@@ -445,6 +456,7 @@ function showBrowserBookingNotification(booking) {
 
   new Notification("มีนัดหมายใหม่", {
     body: `${booking.name} • ${booking.date} ${booking.time}`,
+    icon: "KPL-logo.jpg"
   });
 }
 </script>
@@ -840,7 +852,12 @@ let lastSeenBookingId = "";
           <td>${b.name}</td><td>${b.phone}</td><td>${b.date}<br>${b.time}</td>
           <td>${b.services}<br><span class="muted">฿${b.total}</span></td>
           <td><span style="color:${statusColor};font-weight:800">${statusText}</span></td>
-          <td><div class="inline-actions"><button class="tiny-btn" onclick="updateBookingStatus(${b.id},'approved')">ยืนยัน</button><button class="tiny-btn" onclick="updateBookingStatus(${b.id},'cancelled')">ยกเลิก</button></div></td>
+          <td>
+  <div class="inline-actions">
+    <button class="tiny-btn" onclick="updateBookingStatus('${b.id}','approved')">ยืนยัน</button>
+    <button class="tiny-btn" onclick="updateBookingStatus('${b.id}','cancelled')">ยกเลิก</button>
+  </div>
+</td>
         </tr>`;
       }).join("");
     }
@@ -1111,23 +1128,14 @@ adminLoginBtn.addEventListener("click", async () => {
   }
 
   if (pass === ADMIN_PASSWORD) {
-
-    // ⭐ เพิ่มตรงนี้
-    if ("Notification" in window) {
-      if (Notification.permission !== "granted") {
-        await Notification.requestPermission();
-      }
-    }
-
+    await enableBrowserNotifications();
     localStorage.setItem(ADMIN_LOGIN_KEY, "true");
     openAdminPanel();
     showToast("เข้าสู่หน้าแอดมินแล้ว");
-
   } else {
     showToast("รหัสผ่านไม่ถูกต้อง");
   }
 });
-
     document.getElementById("adminLogoutBtn").addEventListener("click", () => {
   adminUnlocked = false;
   localStorage.removeItem(ADMIN_LOGIN_KEY);
@@ -1183,6 +1191,62 @@ async function checkNewBookingsForAdmin() {
     }
 
     const latestBookings = (data || []).map(item => ({
+  id: item.id,
+  customerKey: item.phone || item.name || String(item.id),
+  name: item.name || "",
+  phone: item.phone || "",
+  date: item.booking_date || "",
+  time: item.booking_time || "",
+  doctor: "",
+  note: item.note || "",
+  services: item.services || "-",
+  total: 0,
+  status: item.status || "pending"
+}));
+
+if (latestBookings.length > 0) {
+  const newest = latestBookings[0];
+  const newestId = String(newest.id || "");
+
+  if (lastSeenBookingId && newestId && newestId !== lastSeenBookingId) {
+    const ok = await enableBrowserNotifications();
+
+if (ok) {
+  showBrowserBookingNotification({
+    name: newest.name,
+    date: newest.date,
+    time: newest.time
+  });
+}
+
+    showPersistentBookingAlert(newest);
+    showToast("มีนัดหมายใหม่เข้ามา");
+  }
+
+  lastSeenBookingId = newestId;
+}
+
+bookings = latestBookings;
+renderAdminBookings();
+renderMyBooking();
+} catch (err) {
+  console.error("Polling error:", err);
+}
+}
+
+async function loadBookingsFromSupabase() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("bookings")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    bookings = (data || []).map(item => ({
       id: item.id,
       customerKey: item.phone || item.name || String(item.id),
       name: item.name || "",
@@ -1190,87 +1254,41 @@ async function checkNewBookingsForAdmin() {
       date: item.booking_date || "",
       time: item.booking_time || "",
       doctor: "",
-      note: "",
+      note: item.note || "",
       services: item.services || "-",
       total: 0,
       status: item.status || "pending"
     }));
 
-    if (latestBookings.length > 0) {
-      const newest = latestBookings[0];
-      const newestId = String(newest.id || "");
-
-      if (lastSeenBookingId && newestId && newestId !== lastSeenBookingId) {
-        showBrowserBookingNotification({
-          name: newest.name,
-          date: newest.date,
-          time: newest.time
-        });
-
-        showPersistentBookingAlert(newest);
-        showToast("มีนัดหมายใหม่เข้ามา");
-      }
-
-      lastSeenBookingId = newestId;
+    if (bookings.length > 0) {
+      lastSeenBookingId = String(bookings[0].id || "");
     }
 
-    bookings = latestBookings;
     renderAdminBookings();
     renderMyBooking();
   } catch (err) {
-    console.error("Polling error:", err);
+    console.error(err);
   }
 }
 
-    async function loadBookingsFromSupabase(){
-      try{
-        const { data, error } = await supabaseClient
-  .from("bookings")
-  .select("*")
-  .order("id", { ascending: false });
-        if(error){ console.error(error); return; }
-        bookings = (data || []).map(item => ({
-          id: item.id,
-          customerKey: item.phone || item.name || String(item.id),
-          name: item.name || "",
-          phone: item.phone || "",
-          date: item.booking_date || "",
-          time: item.booking_time || "",
-          doctor: "",
-          note: "",
-          services: item.services || "-",
-          total: 0,
-          status: item.status || "pending"
-        }));
-        renderAdminBookings();
-        renderMyBooking();
-      }catch(err){
-        console.error(err);
-      }
-    }
 if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
   openAdminPanel();
 }
 
-    enableBrowserNotifications();
-    renderHomePage();
-    renderPageText();
-    renderCategoryFilterButtons();
-    renderCategoryAdmin();
-    renderPromoAdminForms();
-    renderServices();
-    renderServiceDropdown();
-    renderCart();
-    renderCalendar();
-    renderNotifications();
-    renderMyBooking();
-    loadBookingsFromSupabase();
-  </script>
-
-
-
-
-
+enableBrowserNotifications();
+renderHomePage();
+renderPageText();
+renderCategoryFilterButtons();
+renderCategoryAdmin();
+renderPromoAdminForms();
+renderServices();
+renderServiceDropdown();
+renderCart();
+renderCalendar();
+renderNotifications();
+renderMyBooking();
+loadBookingsFromSupabase();
+</script>
 
 <script>
 (function(){
