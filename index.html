@@ -218,7 +218,6 @@
     </div>
   </div>
 </div>
-      </div>
 
       <div id="adminPanel" class="hidden">
         <div class="admin-page-nav">
@@ -404,25 +403,6 @@ async function enableBrowserNotifications() {
     console.log("Browser นี้ไม่รองรับ notification");
     return;
   }
-
-  if (Notification.permission === "default") {
-    await Notification.requestPermission();
-  }
-}
-
-function showBrowserBookingNotification(booking) {
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-
-  new Notification("มีนัดหมายใหม่", {
-    body: `${booking.name} • ${booking.date} ${booking.time}`,
-  });
-}
-</script>
-
-<script>
-async function enableBrowserNotifications() {
-  if (!("Notification" in window)) return;
 
   if (Notification.permission === "default") {
     await Notification.requestPermission();
@@ -862,6 +842,12 @@ function showBrowserBookingNotification(booking) {
     }
 
     const serviceDateInput=document.getElementById("serviceDate"), serviceTimeSelect=document.getElementById("serviceTime");
+    serviceDateInput.addEventListener("change", () => {
+      if (!serviceDateInput.value) return;
+      const d = new Date(serviceDateInput.value);
+      currentDate = new Date(d.getFullYear(), d.getMonth(), 1);
+      selectDateByKey(serviceDateInput.value, false);
+    });
     function syncDateTimeInputs(){
       if(!selectedKey) return;
       serviceDateInput.value=selectedKey;
@@ -911,47 +897,72 @@ function showBrowserBookingNotification(booking) {
       const booking={id:Date.now(),customerKey,name,phone,date,time,doctor:document.getElementById("doctorType").value,note:document.getElementById("bookingNote").value.trim(),services:serviceText,total:totalPrice,status:"pending"};
 
       try {
-  const { error } = await supabaseClient.from("bookings").insert([{
-    name: booking.name,
-    phone: booking.phone,
-    booking_date: booking.date,
-    booking_time: booking.time,
-    status: booking.status
-  }]);
+        let insertError = null;
 
-  if (error) {
-    console.error(error);
-    showToast("ส่งข้อมูลไม่สำเร็จ");
-    return;
-  }
+        // พยายามบันทึกแบบเต็มก่อน
+        let result = await supabaseClient.from("bookings").insert([{
+          name: booking.name,
+          phone: booking.phone,
+          booking_date: booking.date,
+          booking_time: booking.time,
+          status: booking.status
+        }]);
 
-  const notifyRes = await fetch(
-    "https://dmiobtpxybrhdklsmdru.supabase.co/functions/v1/line-booking-notify",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: booking.name,
-        phone: booking.phone,
-        booking_date: booking.date,
-        booking_time: booking.time,
-        status: booking.status
-      })
-    }
-  );
+        insertError = result.error || null;
 
-  if (!notifyRes.ok) {
-    const text = await notifyRes.text();
-    console.error("LINE notify failed:", text);
-  }
+        // ถ้าตารางยังไม่มีคอลัมน์ status ให้ลองบันทึกแบบพื้นฐาน
+        if (insertError) {
+          console.warn("Insert with status failed, retrying basic insert:", insertError);
+          result = await supabaseClient.from("bookings").insert([{
+            name: booking.name,
+            phone: booking.phone,
+            booking_date: booking.date,
+            booking_time: booking.time
+          }]);
+          insertError = result.error || null;
+        }
 
-} catch (err) {
-  console.error(err);
-  showToast("เชื่อมต่อฐานข้อมูลไม่สำเร็จ");
-  return;
-}
+        if (insertError) {
+          console.error(insertError);
+          showToast("ส่งข้อมูลไม่สำเร็จ");
+          return;
+        }
+
+        showBrowserBookingNotification(booking);
+
+        try {
+          const notifyRes = await fetch(
+            "https://dmiobtpxybrhdklsmdru.supabase.co/functions/v1/line-booking-notify",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": "Bearer " + SUPABASE_ANON_KEY
+              },
+              body: JSON.stringify({
+                name: booking.name,
+                phone: booking.phone,
+                booking_date: booking.date,
+                booking_time: booking.time,
+                status: booking.status
+              })
+            }
+          );
+
+          if (!notifyRes.ok) {
+            const notifyText = await notifyRes.text();
+            console.error("LINE notify failed:", notifyText);
+          }
+        } catch (notifyErr) {
+          console.error("LINE notify request error:", notifyErr);
+        }
+
+      } catch (err) {
+        console.error(err);
+        showToast("เชื่อมต่อฐานข้อมูลไม่สำเร็จ");
+        return;
+      }
 
       bookings.unshift(booking); addNotification(booking); setSlotState(date,time,"busy"); saveAllData();
       renderAdminBookings(); renderMyBooking(); renderCalendar(); if(selectedKey===date){ renderSlotsForSelectedDate(); syncDateTimeInputs(); }
@@ -1105,6 +1116,7 @@ if (localStorage.getItem(ADMIN_LOGIN_KEY) === "true") {
   openAdminPanel();
 }
 
+    enableBrowserNotifications();
     renderHomePage();
     renderPageText();
     renderCategoryFilterButtons();
