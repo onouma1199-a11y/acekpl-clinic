@@ -1279,7 +1279,7 @@ async function checkNewBookingsForAdmin() {
     const { data, error } = await supabaseClient
       .from("bookings")
       .select("*")
-      .order("id", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("checkNewBookingsForAdmin error:", error);
