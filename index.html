@@ -1102,7 +1102,7 @@ function openAdminPanel() {
   }
 }
 
-adminLoginBtn.addEventListener("click", () => {
+adminLoginBtn.addEventListener("click", async () => {
   const pass = adminPasswordInput.value.trim();
 
   if (!pass) {
@@ -1111,17 +1111,20 @@ adminLoginBtn.addEventListener("click", () => {
   }
 
   if (pass === ADMIN_PASSWORD) {
+
+    // ⭐ เพิ่มตรงนี้
+    if ("Notification" in window) {
+      if (Notification.permission !== "granted") {
+        await Notification.requestPermission();
+      }
+    }
+
     localStorage.setItem(ADMIN_LOGIN_KEY, "true");
     openAdminPanel();
     showToast("เข้าสู่หน้าแอดมินแล้ว");
+
   } else {
     showToast("รหัสผ่านไม่ถูกต้อง");
-  }
-});
-
-adminPasswordInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    adminLoginBtn.click();
   }
 });
 
